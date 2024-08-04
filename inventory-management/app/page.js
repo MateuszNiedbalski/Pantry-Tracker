@@ -1,7 +1,7 @@
 "use client"
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Box, Stack, Typography, Button, Modal, TextField } from '@mui/material';
+import { Box, Stack, Typography, Button, Modal, TextField, Container } from '@mui/material';
 import { firestore } from "@/firebase";
 import {collection, doc, getDocs, query, setDoc, deleteDoc, getDoc,} from 'firebase/firestore';
 
@@ -25,6 +25,9 @@ export default function Home() {
   const [inventory, setInventory] = useState([])
   const [open, setOpen] = useState(false)
   const [itemName, setItemName] = useState('')
+  const [filterTerm, setFilterTerm] = useState('');
+
+
 
   const updateInventory = async () => {
     const snapshot = query(collection(firestore, 'inventory'))
@@ -67,8 +70,14 @@ export default function Home() {
   }
   const handleOpen = () => setOpen(true)
   const handleClose = () => setOpen(false)
+  const filteredInventory = inventory.filter(({ name }) =>
+    name.toLowerCase().includes(filterTerm.toLowerCase())
+  );
+
+
   return (
     <Box
+      bgcolor={'whitesmoke'}
       width="100vw"
       height="100vh"
       display={'flex'}
@@ -76,6 +85,7 @@ export default function Home() {
       flexDirection={'column'}
       alignItems={'center'}
       gap={2}
+      textcolor={'whitesmoke'}
     >
       <Modal
         open={open}
@@ -84,7 +94,7 @@ export default function Home() {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
+          <Typography id="modal-modal-title" variant="h6" component="h2" bgcolor={'royalpurple'}>
             Add Item
           </Typography>
           <Stack width="100%" direction={'row'} spacing={2}>
@@ -98,10 +108,11 @@ export default function Home() {
             />
             <Button
               variant="outlined"
+              color="success"
               onClick={() => {
-                addItem(itemName)
-                setItemName('')
-                handleClose()
+                addItem(itemName);
+                setItemName('');
+                handleClose();
               }}
             >
               Add
@@ -109,24 +120,42 @@ export default function Home() {
           </Stack>
         </Box>
       </Modal>
-      <Button variant="contained" onClick={handleOpen}>
+      <Button variant="contained" color="secondary" onClick={handleOpen}>
         Add New Item
       </Button>
+      <Box 
+      padding={`10px`}
+      width="800px"
+      display={'flex'}
+      justifyContent={'center'}
+      alignItems={'center'}>
+      <TextField
+        id="filter-basic"
+        label="Search"
+        variant="outlined"
+        color="secondary"
+        focused
+        fullWidth
+        value={filterTerm}
+        onChange={(e) => setFilterTerm(e.target.value)}
+        sx={{ marginBottom: 2 }}
+      />
+      </Box>
       <Box border={'1px solid #333'}>
         <Box
           width="800px"
           height="100px"
-          bgcolor={'#ADD8E6'}
+          bgcolor={'purple'}
           display={'flex'}
           justifyContent={'center'}
           alignItems={'center'}
         >
-          <Typography variant={'h2'} color={'#333'} textAlign={'center'}>
+          <Typography variant={'h2'} color={'white'} textAlign={'center'}>
             Inventory Items
           </Typography>
         </Box>
         <Stack width="800px" height="300px" spacing={2} overflow={'auto'}>
-          {inventory.map(({name, quantity}) => (
+          {filteredInventory.map(({ name, quantity }) => (
             <Box
               key={name}
               width="100%"
@@ -143,14 +172,17 @@ export default function Home() {
               <Typography variant={'h3'} color={'#333'} textAlign={'center'}>
                 Quantity: {quantity}
               </Typography>
-              <Button variant="contained" onClick={() => removeItem(name)}>
+              <Button variant="contained" color="success" onClick={() => addItem(name)}>
+                Add
+              </Button>
+              <Button variant="contained" color="error" onClick={() => removeItem(name)}>
                 Remove
               </Button>
+
             </Box>
           ))}
         </Stack>
       </Box>
     </Box>
-  )
-  
+  );
 }
